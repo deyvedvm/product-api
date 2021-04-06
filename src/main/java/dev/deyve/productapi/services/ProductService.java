@@ -123,7 +123,7 @@ public class ProductService {
      */
     public List<ProductDTO> searchProducts(String q, BigDecimal min_price, BigDecimal max_price) {
 
-        var productList = productRepository.findByNameContainingOrDescriptionContainingAndPriceGreaterThanAndPriceLessThan(q, q, min_price, max_price);
+        var productList = productRepository.findByPriceBetweenAndNameContainingAndDescriptionContaining(min_price, max_price, q, q);
 
         log.debug("Product List: {} ", productList);
 

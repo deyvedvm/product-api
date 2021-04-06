@@ -2,6 +2,7 @@ package dev.deyve.productapi.repositories;
 
 import dev.deyve.productapi.models.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -15,6 +16,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Optional<Product> findByExternalId(UUID uuid);
 
-    List<Product> findByNameContainingOrDescriptionContainingAndPriceGreaterThanAndPriceLessThan(String name, String description, BigDecimal min_price, BigDecimal max_price);
+    @Query("select p from Product p where p.price between ?1 and ?2 and (p.name like %?3% or p.description like %?4%)")
+    List<Product> findByPriceBetweenAndNameContainingAndDescriptionContaining(BigDecimal min_price, BigDecimal max_price, String name, String description);
 
 }
