@@ -1,6 +1,7 @@
 package dev.deyve.productapi.controllers;
 
 import dev.deyve.productapi.dtos.ProductDTO;
+import dev.deyve.productapi.models.Product;
 import dev.deyve.productapi.services.ProductService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+
+import static dev.deyve.productapi.parsers.ProductParser.toProductDTO;
 
 /**
  * Product Controller
@@ -61,15 +64,13 @@ public class ProductController {
     @GetMapping("/{id}")
     public ResponseEntity<ProductDTO> getProduct(@PathVariable UUID id) {
 
-        ProductDTO productDTO = productService.findById(id);
+        Product product = productService.findByExternalId(id);
 
-        log.info("ProductDTO: {} ", productDTO);
+        log.info("Product: {} ", product);
 
-        if (productDTO == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        if (product == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-        return new ResponseEntity<>(productDTO, HttpStatus.OK);
+        return new ResponseEntity<>(toProductDTO(product), HttpStatus.OK);
     }
 
     /**
@@ -102,15 +103,23 @@ public class ProductController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable UUID id) {
 
-        ProductDTO productDTO = productService.findById(id);
+        Product product = productService.findByExternalId(id);
 
-        if (productDTO == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (product == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 
-        productService.deleteProduct(id);
+        productService.deleteProduct(product.getId());
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    /**
+     * Search Products
+     *
+     * @param q         Name or Description
+     * @param min_price BigDecimal
+     * @param max_price BigDecimal
+     * @return List<ProductDTO>
+     */
     @GetMapping("/search")
     public ResponseEntity<List<ProductDTO>> searchProducts(@RequestParam String q, @RequestParam BigDecimal min_price, BigDecimal max_price) {
 

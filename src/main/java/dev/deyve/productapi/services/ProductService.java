@@ -63,18 +63,18 @@ public class ProductService {
     }
 
     /**
-     * Find Product by Id
+     * Find Product by externalId
      *
      * @param id UUID
-     * @return ProductDTO
+     * @return Product
      */
-    public ProductDTO findById(UUID id) {
+    public Product findByExternalId(UUID id) {
 
         Optional<Product> product = productRepository.findByExternalId(id);
 
         log.debug("Product: {} ", product);
 
-        return product.map(ProductParser::toProductDTO).orElse(null);
+        return product.orElse(null);
     }
 
     /**
@@ -93,7 +93,7 @@ public class ProductService {
         }
 
         Product product = toProduct(productDTO);
-        product.setId(optionalProduct.get().getId()); // TODO
+        product.setId(optionalProduct.get().getId());
         product.setExternalId(id);
 
         Product productSaved = productRepository.save(product);
@@ -104,18 +104,28 @@ public class ProductService {
     /**
      * Delete Product
      *
-     * @param id UUID
+     * @param id Long
      */
-    public void deleteProduct(UUID id) {
+    public void deleteProduct(Long id) {
 
-        Optional<Product> product = productRepository.findByExternalId(id);
+        log.debug("Long Id: {} ", id);
 
-        product.ifPresent(p -> productRepository.deleteById(p.getId()));
+        productRepository.deleteById(id);
     }
 
+    /**
+     * Search Products
+     *
+     * @param q         Name or Description
+     * @param min_price BigDecimal
+     * @param max_price BigDecimal
+     * @return List<ProductDTO>
+     */
     public List<ProductDTO> searchProducts(String q, BigDecimal min_price, BigDecimal max_price) {
 
         var productList = productRepository.findByNameContainingOrDescriptionContainingAndPriceGreaterThanAndPriceLessThan(q, q, min_price, max_price);
+
+        log.debug("Product List: {} ", productList);
 
         return productList.stream()
                 .map(ProductParser::toProductDTO)
