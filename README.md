@@ -22,3 +22,13 @@ Maven - use [SDK Man](https://sdkman.io/) to install
 ### Running the application
 
 sh run-local.sh
+
+### Docs 
+
+#### OpenAPI descriptions
+
+http://localhost:9999/v3/api-docs/
+
+#### API documentation
+
+http://localhost:9999/swagger-ui.html
