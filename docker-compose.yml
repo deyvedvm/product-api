@@ -1,0 +1,14 @@
+version: '3.7'
+
+services:
+
+  postgres:
+    image: postgres
+    container_name: product-api-database
+    #    restart: always
+    environment:
+      POSTGRES_DB: product-database
+      POSTGRES_USER: product-user
+      POSTGRES_PASSWORD: product-password
+    ports:
+      - 5432:5432
