@@ -15,6 +15,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -146,8 +147,6 @@ public class ProductController {
     public ResponseEntity<Void> deleteProduct(@PathVariable UUID id) {
 
         Product product = productService.findByExternalId(id);
-
-//        if (product == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product Not Found");
 
         if (product == null) throw new ProductNotFoundException("Product Not Found");
 
