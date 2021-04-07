@@ -1,8 +1,16 @@
 package dev.deyve.productapi.controllers;
 
 import dev.deyve.productapi.dtos.ProductDTO;
+import dev.deyve.productapi.exceptions.MessageError;
+import dev.deyve.productapi.exceptions.ProductNotFoundException;
 import dev.deyve.productapi.models.Product;
 import dev.deyve.productapi.services.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static dev.deyve.productapi.parsers.ProductParser.toProductDTO;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 /**
  * Product Controller
@@ -34,6 +43,12 @@ public class ProductController {
      * @return List<Product>
      */
     @GetMapping
+    @Operation(summary = "Find products")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Products found",
+                    content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ProductDTO.class)))),
+            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Products not found", content = @Content)})
     public ResponseEntity<List<ProductDTO>> getProducts() {
 
         List<ProductDTO> productDTOList = productService.findProducts();
@@ -46,6 +61,13 @@ public class ProductController {
     }
 
     @PostMapping
+    @Operation(summary = "Save product")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Product saved",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ProductDTO.class))}),
+            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Products not found", content = @Content)})
     public ResponseEntity<ProductDTO> postProduct(@RequestBody ProductDTO productDTO) {
 
         ProductDTO productDTOSaved = productService.saveProduct(productDTO);
@@ -62,13 +84,21 @@ public class ProductController {
      * @return ProductDTO
      */
     @GetMapping("/{id}")
+    @Operation(summary = "Get product by Id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Found product",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ProductDTO.class))}),
+            @ApiResponse(responseCode = "400", description = "Invalid id supplied", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Product not found", content = {@Content(mediaType = "application/json",
+                    schema = @Schema(implementation = MessageError.class))})})
     public ResponseEntity<ProductDTO> getProduct(@PathVariable UUID id) {
 
         Product product = productService.findByExternalId(id);
 
         log.info("Product: {} ", product);
 
-        if (product == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (product == null) throw new ProductNotFoundException("Product Not Found");
 
         return new ResponseEntity<>(toProductDTO(product), HttpStatus.OK);
     }
@@ -81,13 +111,19 @@ public class ProductController {
      * @return ProductDTO
      */
     @PutMapping("/{id}")
+    @Operation(summary = "Update product by Id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Updated product",
+                    content = {@Content(mediaType = "application/json",
+                            schema = @Schema(implementation = ProductDTO.class))}),
+            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Product not found", content = {@Content(mediaType = "application/json",
+                    schema = @Schema(implementation = MessageError.class))})})
     public ResponseEntity<ProductDTO> putProduct(@PathVariable UUID id, @RequestBody ProductDTO productDTO) {
 
         ProductDTO productSaved = productService.updateProduct(id, productDTO);
 
-        if (productSaved == null) {
-            return ResponseEntity.notFound().build();
-        }
+        if (productSaved == null) throw new ProductNotFoundException("Product Not Found");
 
         log.info("ProductDTO: {} ", productSaved);
 
@@ -101,15 +137,23 @@ public class ProductController {
      * @return Void
      */
     @DeleteMapping("/{id}")
+    @Operation(summary = "Delete product by Id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Delete product"),
+            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Product not found", content = {@Content(mediaType = "application/json",
+                    schema = @Schema(implementation = MessageError.class))})})
     public ResponseEntity<Void> deleteProduct(@PathVariable UUID id) {
 
         Product product = productService.findByExternalId(id);
 
-        if (product == null) return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+//        if (product == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Product Not Found");
+
+        if (product == null) throw new ProductNotFoundException("Product Not Found");
 
         productService.deleteProduct(product.getId());
 
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(NO_CONTENT);
     }
 
     /**
@@ -121,6 +165,12 @@ public class ProductController {
      * @return List<ProductDTO>
      */
     @GetMapping("/search")
+    @Operation(summary = "Search products")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Products found",
+                    content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = ProductDTO.class)))),
+            @ApiResponse(responseCode = "400", description = "Bad request", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Products not found", content = @Content)})
     public ResponseEntity<List<ProductDTO>> searchProducts(@RequestParam String q, @RequestParam BigDecimal min_price, BigDecimal max_price) {
 
         List<ProductDTO> productDTOList = productService.searchProducts(q, min_price, max_price);

@@ -7,6 +7,6 @@
 - [ ] Deploy Container - Docker Hub
 - [ ] Deploy Heroku
 - [ ] Flyway
-- [ ] Error handling
+- [X] Error handling
 - [ ] Set Profiles
 - [ ] Environment variables

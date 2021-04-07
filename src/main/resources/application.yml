@@ -1,0 +1,17 @@
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/product-database
+    username: product-user
+    password: product-password
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        temp:
+          use_jdbc_metadata_defaults: false
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+server:
+  port: 9999
