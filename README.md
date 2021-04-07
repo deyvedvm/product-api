@@ -1,7 +1,7 @@
 ### Product API
 
 - [X] Endpoints
-- [ ] Swagger
+- [X] Swagger
 - [ ] Unit Tests
 - [ ] Test Container
 - [ ] Deploy Container - Docker Hub
